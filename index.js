@@ -12,8 +12,9 @@ const getWeather = async function(zip) {
     return weatherData;
 
   } catch(error) {
-    console.log(error);
+    return error;
   }
+
 }
 
 // Constructor function that takes in data object and refines
@@ -38,6 +39,19 @@ const addLocation = function() {
   let location = input.value;
 
   let locationData = getWeather(location);
+
+  locationData.catch(function() {
+    const weatherCont = document.getElementById('weatherCont');
+    weatherCont.innerHTML = '';
+    const body = document.querySelector('body');
+
+    const err = document.createElement('div');
+    err.setAttribute('id', 'err');
+    err.innerText = 'Location not found/Error occurred.';
+    weatherCont.appendChild(err);
+    body.appendChild(weatherCont);
+  }());
+
   locationData.then(function(result) {
     let refinedData = new Weather(result);
     addWeatherToDOM(refinedData);
@@ -46,9 +60,7 @@ const addLocation = function() {
 
 // Function that creates/appends DOM elements for each data point
 const addWeatherToDOM = function(data) {
-  console.log(data);
   currentLocation = data;
-  console.log(currentLocation);
 
   const weatherCont = document.getElementById('weatherCont');
   weatherCont.innerHTML = '';
@@ -67,7 +79,7 @@ const addWeatherToDOM = function(data) {
   if (data.unit === "F") {
     data.temp = Math.round(data.temp);
     temp.innerText = 'Temperature: ' + data.temp + ' °F';
-  } else {
+  } else if (data.unit === "C") {
     data.temp = Math.round(data.temp);
     temp.innerText = 'Temperature: ' + data.temp + ' °C';
   }
@@ -75,11 +87,23 @@ const addWeatherToDOM = function(data) {
 
   const temp_min = document.createElement('div');
   temp_min.setAttribute('id','temp_min');
-  temp_min.innerText = 'Low: ' + data.temp_min + ' °F';
+  if (data.unit === "F") {
+    data.temp_min = Math.round(data.temp_min);
+    temp_min.innerText = 'Low: ' + data.temp_min + ' °F';
+  } else if (data.unit === "C") {
+    data.temp_min = Math.round(data.temp_min);
+    temp_min.innerText = 'Low: ' + data.temp_min + ' °C';
+  }
 
   const temp_max = document.createElement('div');
   temp_max.setAttribute('id','temp_max');
-  temp_max.innerText = 'High: ' + data.temp_max + ' °F';
+  if (data.unit === "F") {
+    data.temp_max = Math.round(data.temp_max);
+    temp_max.innerText = 'High: ' + data.temp_max + ' °F';
+  } else if (data.unit === "C") {
+    data.temp_max = Math.round(data.temp_max);
+    temp_max.innerText = 'High: ' + data.temp_max + ' °C';
+  }
 
   const humidity = document.createElement('div');
   humidity.setAttribute('id','humidity');
@@ -92,53 +116,81 @@ const addWeatherToDOM = function(data) {
 
   const sunrise = document.createElement('div');
   sunrise.setAttribute('id','sunrise');
-  let rise = new Date(data.sunrise * 1000);
-  let riseHours = rise.getHours();
-  let riseMin = "0" + rise.getMinutes();
-  let riseTime = riseHours + ':' + riseMin.substr(-2);
-  data.sunrise = riseTime;
-  sunrise.innerText = 'Sunrise: ' + data.sunrise + ' AM';
+  if(typeof(data.sunrise) === 'string') {
+    sunrise.innerText = 'Sunrise: ' + data.sunrise + ' AM';
+  } else {
+    let rise = new Date(data.sunrise * 1000);
+    let riseHours = rise.getHours();
+    let riseMin = "0" + rise.getMinutes();
+    let riseTime = riseHours + ':' + riseMin.substr(-2);
+    data.sunrise = riseTime;
+    sunrise.innerText = 'Sunrise: ' + data.sunrise + ' AM';
+  }
+
 
   const sunset = document.createElement('div');
   sunset.setAttribute('id','sunset');
-  let set = new Date(data.sunset * 1000);
-  let setHours = set.getHours();
-  let setMin = "0" + set.getMinutes();
-  let setTime = setHours + ':' + setMin.substr(-2);
-  data.sunset = setTime;
-  sunset.innerText = 'Sunset: ' + data.sunset + ' PM';
+  if(typeof(data.sunset) === 'string') {
+    sunset.innerText = 'Sunset: ' + data.sunset + ' PM';
+  } else {
+    let set = new Date(data.sunset * 1000);
+    let setHours = set.getHours();
+    let setMin = "0" + set.getMinutes();
+    let setTime = setHours + ':' + setMin.substr(-2);
+    data.sunset = setTime;
+    sunset.innerText = 'Sunset: ' + data.sunset + ' PM';
+  }
+
 
   weatherCont.append(name, description, temp, temp_min,
     temp_max, humidity, wind, sunrise, sunset);
   body.appendChild(weatherCont);
 
+
 }
 
 const changeTemp = function(unit) {
-  if (unit === currentLocation.unit) {
-    console.log('');
-  } else if (unit === 'C' && currentLocation.unit !== unit) {
+  if (unit === 'C' && currentLocation.unit !== unit) {
     currentLocation.temp = Math.round((currentLocation.temp - 32) * (5 / 9));
+    currentLocation.temp_min = Math.round((currentLocation.temp_min - 32) * (5 / 9));
+    currentLocation.temp_max = Math.round((currentLocation.temp_max - 32) * (5 / 9));
     currentLocation.unit = 'C';
     addWeatherToDOM(currentLocation);
-    console.log('C');
-  } /*else if (unit === 'F' && currentLocation.unit !== unit) {
+  } else if (unit === 'F' && currentLocation.unit !== unit) {
     currentLocation.temp = Math.round((currentLocation.temp * (9 / 5)) + 32);
+    currentLocation.temp_min = Math.round((currentLocation.temp_min * (9 / 5)) + 32);
+    currentLocation.temp_max = Math.round((currentLocation.temp_max * (9 / 5)) + 32);
     currentLocation.unit = 'F';
     addWeatherToDOM(currentLocation);
-    console.log('F');
-  }*/
+  }
 }
 
 
+
 const button = document.querySelector('button');
-button.addEventListener('click', addLocation);
+button.addEventListener('click', function(event) {
+  const locationInput = document.getElementById('location');
+  if (locationInput.validity.valueMissing) {
+    locationInput.setCustomValidity('Please enter a location.');
+    locationInput.reportValidity();
+  } else if (locationInput.validity.patternMismatch) {
+    locationInput.setCustomValidity('Please enter 5 digit zip code.');
+    locationInput.reportValidity();
+  } else {
+    addLocation();
+  }
+});
 
 const f = document.getElementById('F');
-f.addEventListener('click', changeTemp('F'));
+f.addEventListener('click', function() {
+  changeTemp('F');
+});
 
 const c = document.getElementById('C');
-c.onclick = changeTemp('C');
+c.addEventListener('click', function() {
+  changeTemp('C');
+})
+
 
 
 
