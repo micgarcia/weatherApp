@@ -21,7 +21,7 @@ const getWeather = async function(zip) {
 // to specific data
 const Weather = function(data) {
   this.name = data.name;
-  this.description = data.weather[0].description;
+  this.description = data.weather[0].main;
   this.temp = data.main.temp;
   this.temp_max = data.main.temp_max;
   this.temp_min = data.main.temp_min;
@@ -47,7 +47,7 @@ const addLocation = function() {
 
     const err = document.createElement('div');
     err.setAttribute('id', 'err');
-    err.innerText = 'Location not found/Error occurred.';
+    err.innerText = 'Loading Location';
     weatherCont.appendChild(err);
     body.appendChild(weatherCont);
   }());
@@ -68,20 +68,33 @@ const addWeatherToDOM = function(data) {
 
   const name = document.createElement('div');
   name.setAttribute('id','name');
-  name.innerText = 'City: ' + data.name;
+  name.innerHTML = '<b>City</b> ' + data.name;
 
   const description = document.createElement('div');
   description.setAttribute('id','description');
-  description.innerText = 'Conditions: ' + data.description;
+  description.innerHTML = '<b>Conditions</b> ' + data.description;
+
+  const picture = document.createElement('img');
+  picture.setAttribute('id', 'picture');
+  if (data.description === 'Clear') {
+    picture.src = 'https://lh3.googleusercontent.com/CnHg3skxcIhFKh5oE_ZV61x-a-tqWKIWC04a4hWkmQymuBRGlp3Kgnr_d3bEj-jgvPZAM1kh4nkpALUr0bDaUJdzPQ=w640-h400-e365-rj-sc0x00ffffff';
+  } else if (data.description === 'Clouds') {
+    picture.src = 'https://s7d2.scene7.com/is/image/TWCNews/clouds_jpg_jpg-2';
+  } else if (data.description === 'Rain') {
+    picture.src = 'https://www.godubrovnik.com/wp-content/uploads/rainy-day.jpg';
+  } else if (data.description === 'Snow') {
+    picture.src = 'https://s.hdnux.com/photos/01/25/51/72/22453933/3/rawImage.jpg';
+  }
+
 
   const temp = document.createElement('div');
   temp.setAttribute('id','temp');
   if (data.unit === "F") {
     data.temp = Math.round(data.temp);
-    temp.innerText = 'Temperature: ' + data.temp + ' °F';
+    temp.innerHTML = '<b>Temperature</b> ' + data.temp + ' °F';
   } else if (data.unit === "C") {
     data.temp = Math.round(data.temp);
-    temp.innerText = 'Temperature: ' + data.temp + ' °C';
+    temp.innerHTML = '<b>Temperature</b> ' + data.temp + ' °C';
   }
 
 
@@ -89,60 +102,60 @@ const addWeatherToDOM = function(data) {
   temp_min.setAttribute('id','temp_min');
   if (data.unit === "F") {
     data.temp_min = Math.round(data.temp_min);
-    temp_min.innerText = 'Low: ' + data.temp_min + ' °F';
+    temp_min.innerHTML = '<b>Low</b> ' + data.temp_min + ' °F';
   } else if (data.unit === "C") {
     data.temp_min = Math.round(data.temp_min);
-    temp_min.innerText = 'Low: ' + data.temp_min + ' °C';
+    temp_min.innerHTML = '<b>Low</b> ' + data.temp_min + ' °C';
   }
 
   const temp_max = document.createElement('div');
   temp_max.setAttribute('id','temp_max');
   if (data.unit === "F") {
     data.temp_max = Math.round(data.temp_max);
-    temp_max.innerText = 'High: ' + data.temp_max + ' °F';
+    temp_max.innerHTML = '<b>High</b> ' + data.temp_max + ' °F';
   } else if (data.unit === "C") {
     data.temp_max = Math.round(data.temp_max);
-    temp_max.innerText = 'High: ' + data.temp_max + ' °C';
+    temp_max.innerHTML = '<b>High</b> ' + data.temp_max + ' °C';
   }
 
   const humidity = document.createElement('div');
   humidity.setAttribute('id','humidity');
-  humidity.innerText = 'Humidity: ' + data.humidity + '%';
+  humidity.innerHTML = '<b>Humidity</b> ' + data.humidity + '%';
 
   const wind = document.createElement('div');
   wind.setAttribute('id','wind');
   data.wind = Math.round(data.wind);
-  wind.innerText = 'Wind: ' + data.wind + ' mph';
+  wind.innerHTML = '<b>Wind</b> ' + data.wind + ' mph';
 
   const sunrise = document.createElement('div');
   sunrise.setAttribute('id','sunrise');
   if(typeof(data.sunrise) === 'string') {
-    sunrise.innerText = 'Sunrise: ' + data.sunrise + ' AM';
+    sunrise.innerHTML = '<b>Sunrise</b> ' + data.sunrise + ' AM';
   } else {
     let rise = new Date(data.sunrise * 1000);
     let riseHours = rise.getHours();
     let riseMin = "0" + rise.getMinutes();
     let riseTime = riseHours + ':' + riseMin.substr(-2);
     data.sunrise = riseTime;
-    sunrise.innerText = 'Sunrise: ' + data.sunrise + ' AM';
+    sunrise.innerHTML = '<b>Sunrise</b> ' + data.sunrise + ' AM';
   }
 
 
   const sunset = document.createElement('div');
   sunset.setAttribute('id','sunset');
   if(typeof(data.sunset) === 'string') {
-    sunset.innerText = 'Sunset: ' + data.sunset + ' PM';
+    sunset.innerHTML = '<b>Sunset</b> ' + data.sunset + ' PM';
   } else {
     let set = new Date(data.sunset * 1000);
     let setHours = set.getHours();
     let setMin = "0" + set.getMinutes();
     let setTime = setHours + ':' + setMin.substr(-2);
     data.sunset = setTime;
-    sunset.innerText = 'Sunset: ' + data.sunset + ' PM';
+    sunset.innerHTML = '<b>Sunset</b> ' + data.sunset + ' PM';
   }
 
 
-  weatherCont.append(name, description, temp, temp_min,
+  weatherCont.append(name, description, picture, temp, temp_min,
     temp_max, humidity, wind, sunrise, sunset);
   body.appendChild(weatherCont);
 
